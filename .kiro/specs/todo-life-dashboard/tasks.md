@@ -133,3 +133,111 @@ Build a single-page productivity dashboard as three plain files — `index.html`
 - Tasks are ordered so each step can be verified in the browser immediately after completion
 - The `Storage` module (Task 2) must be implemented before any widget that persists data (Tasks 5, 6)
 - The HTML structure (Task 7) must exist before `init()` calls can bind to DOM elements, but skeleton IDs can be added incrementally as each module is implemented
+
+- [x] 11. Implement Light / Dark Mode
+  - [x] 11.1 Add `THEME`, `NAME`, and `TIMER_DURATION` keys to `Storage.KEYS` in `js/app.js`
+    - Extend the existing `KEYS` object with `THEME: 'tld_theme'`, `NAME: 'tld_name'`, and `TIMER_DURATION: 'tld_timer_duration'`
+    - _Requirements: 11.4, 11.5, 12.5, 13.3_
+
+  - [x] 11.2 Implement `ThemeManager` module in `js/app.js`
+    - Add `ThemeManager` object inside the IIFE with `STORAGE_KEY = 'tld_theme'`
+    - Add `init()`: reads `tld_theme` from localStorage (falls back to `'light'`), calls `_apply()`
+    - Add `toggle()`: flips the active theme, saves to localStorage, calls `_apply()`
+    - Add `_apply(theme)`: sets `data-theme="dark"` on `document.documentElement` when theme is `'dark'`, removes the attribute for `'light'`; updates `#theme-toggle` button label to `"🌙 Dark"` (light active) or `"☀️ Light"` (dark active)
+    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7_
+
+  - [x] 11.3 Add `<header class="app-header">` with `<button id="theme-toggle">` to `index.html` above `<main>`
+    - Insert `<header class="app-header"><button id="theme-toggle" aria-label="Toggle dark mode">🌙 Dark</button></header>` immediately before the `<main class="dashboard-grid">` element
+    - _Requirements: 11.1_
+
+  - [x] 11.4 Add CSS custom property variables for light and dark themes in `css/style.css`
+    - Declare `--color-bg`, `--color-surface`, `--color-text`, `--color-text-muted`, `--color-border`, and `--color-accent` (and any other colour tokens needed) on `:root` for the light theme
+    - Add a `[data-theme="dark"]` block that overrides those same properties with dark-theme values
+    - Update all existing hard-coded colour references in `css/style.css` to use the corresponding `var(--color-*)` tokens so they respond to the theme switch automatically
+    - _Requirements: 11.2, 11.3, 11.7_
+
+  - [x] 11.5 Add `.app-header` styles in `css/style.css`
+    - Style the header with `display: flex`, appropriate padding, and positioning so `#theme-toggle` is visually accessible (e.g., aligned to the right)
+    - _Requirements: 11.1_
+
+  - [x] 11.6 Call `ThemeManager.init()` as the first call inside `App.init()` in `js/app.js`
+    - Insert `ThemeManager.init()` before `GreetingWidget.init()` so the correct theme is applied before any widget paints
+    - _Requirements: 11.5_
+
+  - [x] 11.7 Bind `ThemeManager.toggle` to the `#theme-toggle` button click event inside `ThemeManager.init()`
+    - Add `document.getElementById('theme-toggle').addEventListener('click', () => ThemeManager.toggle())` inside `ThemeManager.init()`
+    - _Requirements: 11.2, 11.3_
+
+- [x] 12. Implement Custom Name in Greeting
+  - [x] 12.1 Extend `GreetingWidget` in `js/app.js` with `name` state and `setName`/`clearName` methods
+    - Add `name: null` property to `GreetingWidget`
+    - Add `setName(name)`: trims the input; if non-empty, saves to `localStorage` under `tld_name` and calls `render()`; if empty or whitespace-only, calls `clearName()`
+    - Add `clearName()`: removes `tld_name` from localStorage, sets `this.name = null`, calls `render()`
+    - _Requirements: 12.1, 12.5, 12.6, 12.7_
+
+  - [x] 12.2 Update `GreetingWidget.render()` in `js/app.js` to compose the personalised greeting
+    - When `this.name` is set, compose greeting as `` `${base}, ${this.name}!` ``
+    - When `this.name` is null or empty, compose greeting as `` `${base}!` ``
+    - _Requirements: 12.2, 12.4_
+
+  - [x] 12.3 Update `GreetingWidget.init()` in `js/app.js` to load the saved name before first render
+    - Read `tld_name` from localStorage and assign to `this.name` before calling `render()` for the first time
+    - _Requirements: 12.3_
+
+  - [x] 12.4 Add name-edit controls to the greeting section in `index.html`
+    - Add `<button id="greeting-edit-btn" aria-label="Edit name">✏️</button>` next to `#greeting-message`
+    - Add `<div id="greeting-name-form" hidden>` containing `<input id="greeting-name-input" type="text" placeholder="Your name" maxlength="50" />`, `<button id="greeting-name-save">Save</button>`, and `<button id="greeting-name-clear">Clear</button>`
+    - _Requirements: 12.1_
+
+  - [x] 12.5 Bind name-edit events in `GreetingWidget.init()` in `js/app.js`
+    - `#greeting-edit-btn` click: show `#greeting-name-form` and pre-fill `#greeting-name-input` with the current name (or empty string if none)
+    - `#greeting-name-save` click: call `setName()` with the input value, hide `#greeting-name-form`
+    - `#greeting-name-clear` click: call `clearName()`, hide `#greeting-name-form`
+    - _Requirements: 12.1, 12.5, 12.6_
+
+  - [x] 12.6 Add CSS styles for the name-edit controls in `css/style.css`
+    - Style `#greeting-name-form` (hidden by default, flex layout when visible)
+    - Style `#greeting-edit-btn` (small, unobtrusive, positioned inline with the greeting message)
+    - Style `#greeting-name-input` and the save/clear buttons for consistent appearance with the rest of the dashboard
+    - _Requirements: 12.1_
+
+- [x] 13. Implement Custom Pomodoro Duration
+  - [x] 13.1 Extend `FocusTimer` in `js/app.js` with `customDuration` state and duration methods
+    - Add `customDuration` property and `STORAGE_KEY_DURATION = 'tld_timer_duration'`
+    - Add `setDuration(minutes)`: parses input as integer; if outside [1, 60] or NaN, sets `#timer-duration-error` text to `'Please enter a whole number between 1 and 60.'` and returns; otherwise clears the error, updates `DURATION_SECONDS = n * 60`, saves to localStorage under `tld_timer_duration`, and calls `reset()`
+    - Add `_updateDurationControls()`: disables `#timer-duration-input` and `#timer-duration-set` when `state` is `'running'` or `'paused'`; enables them when `state` is `'idle'` or `'done'`
+    - _Requirements: 13.1, 13.2, 13.3, 13.6, 13.7, 13.8_
+
+  - [x] 13.2 Update `FocusTimer.init()` in `js/app.js` to load the saved duration
+    - Read `tld_timer_duration` from localStorage; fall back to `25` if absent or invalid
+    - Set `DURATION_SECONDS` and `remaining` accordingly before calling `render()`
+    - Call `_updateDurationControls()` at the end of `init()`
+    - _Requirements: 13.4, 13.5_
+
+  - [x] 13.3 Update `FocusTimer.start()`, `stop()`, `reset()`, and `onComplete()` in `js/app.js` to call `_updateDurationControls()`
+    - Add `this._updateDurationControls()` (or `FocusTimer._updateDurationControls()`) as the last statement in each of the four methods
+    - _Requirements: 13.7, 13.8_
+
+  - [x] 13.4 Add the duration-setting row to the timer section in `index.html`
+    - Inside `<section id="timer">`, after the existing `.timer-controls` div, add:
+      ```html
+      <div class="timer-duration-row">
+        <label for="timer-duration-input">Duration (min):</label>
+        <input id="timer-duration-input" type="number" min="1" max="60" value="25" />
+        <button id="timer-duration-set">Set</button>
+      </div>
+      <p id="timer-duration-error" class="error-message" aria-live="polite"></p>
+      ```
+    - _Requirements: 13.1_
+
+  - [x] 13.5 Bind duration-set events in `FocusTimer.init()` in `js/app.js`
+    - `#timer-duration-set` click: call `setDuration()` with the value of `#timer-duration-input`
+    - `#timer-duration-input` keydown `Enter`: call `setDuration()` with the current input value
+    - _Requirements: 13.1, 13.2_
+
+  - [x] 13.6 Add CSS styles for the duration controls in `css/style.css`
+    - Style `.timer-duration-row` with flex layout and appropriate spacing
+    - Style `#timer-duration-input` for consistent appearance with other inputs
+    - Style `#timer-duration-error` with an error colour (e.g., red) using a `var(--color-error)` token or direct value
+    - Add disabled-state styles for `#timer-duration-input:disabled` and `#timer-duration-set:disabled` (reduced opacity or muted colour) to visually indicate the controls are inactive while the timer is running or paused
+    - _Requirements: 13.6, 13.7, 13.8_

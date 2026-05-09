@@ -4,8 +4,11 @@
   // ── Storage ──────────────────────────────────────────────────────────────
   const Storage = {
     KEYS: {
-      TASKS: 'tld_tasks',
-      LINKS: 'tld_links',
+      TASKS:          'tld_tasks',
+      LINKS:          'tld_links',
+      THEME:          'tld_theme',
+      NAME:           'tld_name',
+      TIMER_DURATION: 'tld_timer_duration',
     },
 
     /**
@@ -35,8 +38,68 @@
     },
   };
 
+  // ── ThemeManager ─────────────────────────────────────────────────────────
+  const ThemeManager = {
+    /** localStorage key for the saved theme value. */
+    STORAGE_KEY: 'tld_theme',
+
+    /**
+     * Reads the saved theme from localStorage (falls back to 'light'),
+     * applies it to the document, and binds the toggle button.
+     * Requirements: 11.1, 11.5, 11.6
+     */
+    init() {
+      const saved = localStorage.getItem(this.STORAGE_KEY) || 'light';
+      this._apply(saved);
+      // 11.7 — bind toggle button
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.addEventListener('click', () => ThemeManager.toggle());
+      }
+    },
+
+    /**
+     * Flips the active theme, persists the new value, and re-applies.
+     * Requirements: 11.2, 11.3, 11.4
+     */
+    toggle() {
+      const current = document.documentElement.getAttribute('data-theme') === 'dark'
+        ? 'dark'
+        : 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(this.STORAGE_KEY, next);
+      this._apply(next);
+    },
+
+    /**
+     * Sets or removes the data-theme="dark" attribute on <html> and updates
+     * the #theme-toggle button label.
+     * Requirements: 11.2, 11.3, 11.7
+     * @param {'light' | 'dark'} theme
+     */
+    _apply(theme) {
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+      }
+    },
+  };
+
   // ── GreetingWidget ───────────────────────────────────────────────────────
   const GreetingWidget = {
+    /**
+     * The user's custom display name, or null if none is set.
+     * Loaded from localStorage on init().
+     * Requirements: 12.1, 12.3
+     * @type {string | null}
+     */
+    name: null,
+
     /**
      * Returns a zero-padded HH:MM string for the given Date.
      * @param {Date} date
@@ -86,13 +149,47 @@
     },
 
     /**
+     * Saves a custom name. Trims the input; if non-empty, persists to
+     * localStorage and re-renders. If empty/whitespace-only, delegates
+     * to clearName().
+     * Requirements: 12.1, 12.5, 12.7
+     * @param {string} name
+     */
+    setName(name) {
+      const trimmed = name.trim();
+      if (!trimmed) {
+        this.clearName();
+        return;
+      }
+      this.name = trimmed;
+      localStorage.setItem(Storage.KEYS.NAME, trimmed);
+      this.render(new Date());
+    },
+
+    /**
+     * Removes the saved name from localStorage, clears the in-memory name,
+     * and re-renders the greeting without a name.
+     * Requirements: 12.6
+     */
+    clearName() {
+      this.name = null;
+      localStorage.removeItem(Storage.KEYS.NAME);
+      this.render(new Date());
+    },
+
+    /**
      * Writes the current time, date, and greeting to their DOM elements.
+     * When a name is set, the greeting is personalised: "Good Morning, Alex!"
+     * When no name is set, the greeting is plain: "Good Morning!"
+     * Requirements: 12.2, 12.4
      * @param {Date} date
      */
     render(date) {
-      document.getElementById('greeting-time').textContent    = this.formatTime(date);
-      document.getElementById('greeting-date').textContent    = this.formatDate(date);
-      document.getElementById('greeting-message').textContent = this.getGreeting(date.getHours());
+      document.getElementById('greeting-time').textContent = this.formatTime(date);
+      document.getElementById('greeting-date').textContent = this.formatDate(date);
+      const base = this.getGreeting(date.getHours());
+      document.getElementById('greeting-message').textContent =
+        this.name ? `${base}, ${this.name}!` : `${base}!`;
     },
 
     /**
@@ -103,18 +200,58 @@
     },
 
     /**
-     * Renders immediately, then schedules a refresh every 60 seconds.
+     * Loads the saved name, renders immediately, schedules a 60-second
+     * refresh, and binds the name-edit controls.
+     * Requirements: 12.3
      */
     init() {
+      // 12.3 — load saved name before first render
+      const savedName = localStorage.getItem(Storage.KEYS.NAME);
+      this.name = (savedName && savedName.trim()) ? savedName.trim() : null;
+
       this.render(new Date());
       setInterval(() => this.tick(), 60000);
+
+      // 12.5 — bind name-edit controls
+      const editBtn   = document.getElementById('greeting-edit-btn');
+      const nameForm  = document.getElementById('greeting-name-form');
+      const nameInput = document.getElementById('greeting-name-input');
+      const saveBtn   = document.getElementById('greeting-name-save');
+      const clearBtn  = document.getElementById('greeting-name-clear');
+
+      if (editBtn && nameForm && nameInput && saveBtn && clearBtn) {
+        // Show the form and pre-fill with the current name
+        editBtn.addEventListener('click', () => {
+          nameInput.value = this.name || '';
+          nameForm.hidden = false;
+          nameInput.focus();
+        });
+
+        // Save the entered name and hide the form
+        saveBtn.addEventListener('click', () => {
+          this.setName(nameInput.value);
+          nameForm.hidden = true;
+        });
+
+        // Clear the saved name and hide the form
+        clearBtn.addEventListener('click', () => {
+          this.clearName();
+          nameForm.hidden = true;
+        });
+      }
     },
   };
 
   // ── FocusTimer ───────────────────────────────────────────────────────────
   const FocusTimer = {
-    /** Total session duration in seconds (25 minutes). */
+    /** Total session duration in seconds (default 25 minutes). Mutable. */
     DURATION_SECONDS: 1500,
+
+    /** Current duration in whole minutes (mirrors DURATION_SECONDS / 60). */
+    customDuration: 25,
+
+    /** localStorage key for the saved timer duration. */
+    STORAGE_KEY_DURATION: 'tld_timer_duration',
 
     /** Seconds remaining in the current session. */
     remaining: 1500,
@@ -171,6 +308,7 @@
       this.intervalId = null;
       this.state = 'done';
       this.render();
+      this._updateDurationControls();
     },
 
     /**
@@ -180,6 +318,7 @@
       if (this.state === 'running') return;
       this.state = 'running';
       this.intervalId = setInterval(() => this.tick(), 1000);
+      this._updateDurationControls();
     },
 
     /**
@@ -189,6 +328,7 @@
       clearInterval(this.intervalId);
       this.intervalId = null;
       this.state = 'paused';
+      this._updateDurationControls();
     },
 
     /**
@@ -200,16 +340,86 @@
       this.remaining = this.DURATION_SECONDS;
       this.state = 'idle';
       this.render();
+      this._updateDurationControls();
     },
 
     /**
-     * Renders the initial 25:00 display and binds button click handlers.
+     * Validates and applies a custom duration in minutes.
+     * Accepts integers in [1, 60]. Shows an inline error for invalid input.
+     * On success, updates DURATION_SECONDS, saves to localStorage, and resets.
+     * Requirements: 13.1, 13.2, 13.3, 13.6
+     * @param {string | number} minutes
+     */
+    setDuration(minutes) {
+      const n = parseInt(minutes, 10);
+      const errorEl = document.getElementById('timer-duration-error');
+      if (isNaN(n) || n < 1 || n > 60) {
+        if (errorEl) {
+          errorEl.textContent = 'Please enter a whole number between 1 and 60.';
+        }
+        return;
+      }
+      if (errorEl) errorEl.textContent = '';
+      this.DURATION_SECONDS = n * 60;
+      this.customDuration = n;
+      Storage.set(Storage.KEYS.TIMER_DURATION, n);
+      this.reset();
+    },
+
+    /**
+     * Enables or disables the duration input and set button based on the
+     * current timer state. Disabled while running or paused.
+     * Requirements: 13.7, 13.8
+     */
+    _updateDurationControls() {
+      const input  = document.getElementById('timer-duration-input');
+      const setBtn = document.getElementById('timer-duration-set');
+      const disabled = this.state === 'running' || this.state === 'paused';
+      if (input)  input.disabled  = disabled;
+      if (setBtn) setBtn.disabled = disabled;
+    },
+
+    /**
+     * Renders the initial display and binds button click handlers.
+     * Loads saved duration from localStorage, falls back to 25 min.
+     * Requirements: 13.4, 13.5
      */
     init() {
+      // 13.2 — load saved duration before first render
+      const saved = parseInt(localStorage.getItem(Storage.KEYS.TIMER_DURATION), 10);
+      if (!isNaN(saved) && saved >= 1 && saved <= 60) {
+        this.DURATION_SECONDS = saved * 60;
+        this.customDuration   = saved;
+        this.remaining        = this.DURATION_SECONDS;
+      }
+
       this.render();
+
       document.getElementById('timer-start').addEventListener('click', () => this.start());
       document.getElementById('timer-stop').addEventListener('click',  () => this.stop());
       document.getElementById('timer-reset').addEventListener('click', () => this.reset());
+
+      // 13.5 — bind duration-set controls
+      const setBtn       = document.getElementById('timer-duration-set');
+      const durationInput = document.getElementById('timer-duration-input');
+
+      if (setBtn && durationInput) {
+        // Pre-fill the input with the current duration
+        durationInput.value = this.customDuration;
+
+        setBtn.addEventListener('click', () => {
+          this.setDuration(durationInput.value);
+        });
+
+        durationInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.setDuration(durationInput.value);
+          }
+        });
+      }
+
+      this._updateDurationControls();
     },
   };
 
@@ -602,6 +812,7 @@
      * Requirements: 9.1, 9.4, 10.1
      */
     init() {
+      ThemeManager.init();
       GreetingWidget.init();
       FocusTimer.init();
       TodoList.init();

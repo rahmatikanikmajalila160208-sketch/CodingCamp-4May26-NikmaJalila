@@ -5,11 +5,11 @@
  */
 
 /* =============================================================================
-   1. CSS Custom Properties (Design Tokens)
-   Requirements: 10.3, 10.4
+   1. CSS Custom Properties (Design Tokens) — Light Theme
+   Requirements: 10.3, 10.4, 11.2, 11.3, 11.7
    ============================================================================= */
 :root {
-  /* Colour palette */
+  /* Colour palette — light theme */
   --color-bg:             #f0f2f5;
   --color-surface:        #ffffff;
   --color-border:         #e2e6ea;
@@ -21,7 +21,18 @@
   --color-accent-light:   #eef1fe;
   --color-danger:         #e53e3e;
   --color-danger-hover:   #c53030;
+  --color-danger-bg:      #fff5f5;
+  --color-error:          #e53e3e;
   --color-timer-done:     #e53e3e;
+  --color-todo-item-bg:   #f0f2f5;
+  --color-todo-item-hover:#eef1fe;
+  --color-link-item-bg:   #eef1fe;
+  --color-link-item-hover:#dde4fd;
+  --color-greeting-bg-start: #b5e1ff;
+  --color-greeting-bg-end:   #b5e1ff;
+  --color-greeting-text:     #ffffff;
+  --color-greeting-date:     rgba(255, 255, 255, 0.80);
+  --color-greeting-msg:      rgba(255, 255, 255, 0.95);
 
   /* Spacing scale */
   --space-1:  4px;
@@ -55,6 +66,40 @@
 }
 
 /* =============================================================================
+   1b. Dark Theme Overrides
+   Requirements: 11.2, 11.3, 11.7
+   ============================================================================= */
+[data-theme="dark"] {
+  --color-bg:             #1a1a2e;
+  --color-surface:        #16213e;
+  --color-border:         #2a2a4a;
+  --color-text-primary:   #e0e0e0;
+  --color-text-secondary: #a0a0b0;
+  --color-text-muted:     #6a6a80;
+  --color-accent:         #6ab0f5;
+  --color-accent-hover:   #4d9de0;
+  --color-accent-light:   #1a2a40;
+  --color-danger:         #fc8181;
+  --color-danger-hover:   #f56565;
+  --color-danger-bg:      #2d1515;
+  --color-error:          #fc8181;
+  --color-timer-done:     #fc8181;
+  --color-todo-item-bg:   #1e1e38;
+  --color-todo-item-hover:#1a2a40;
+  --color-link-item-bg:   #1a2a40;
+  --color-link-item-hover:#1e3050;
+  --color-greeting-bg-start: #1e2a5e;
+  --color-greeting-bg-end:   #3b1f6e;
+  --color-greeting-text:     #e0e0e0;
+  --color-greeting-date:     rgba(224, 224, 224, 0.75);
+  --color-greeting-msg:      rgba(224, 224, 224, 0.92);
+
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-md:    0 4px 12px rgba(0,0,0,0.30), 0 2px 4px rgba(0,0,0,0.20);
+  --shadow-focus: 0 0 0 3px rgba(106,176,245,0.40);
+}
+
+/* =============================================================================
    2. Base / Reset
    Requirements: 10.4
    ============================================================================= */
@@ -66,13 +111,14 @@
 
 body {
   margin: 0;
-  padding: var(--space-6);
+  padding: 0;
   font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.6;
   color: var(--color-text-primary);
   background-color: var(--color-bg);
   min-height: 100vh;
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -101,6 +147,45 @@ a:hover {
 }
 
 /* =============================================================================
+   2b. App Header — theme toggle bar
+   Requirements: 11.1
+   ============================================================================= */
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+#theme-toggle {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-4);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast);
+}
+
+#theme-toggle:hover {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+#theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+/* =============================================================================
    3. Dashboard Grid Layout
    Requirements: 10.3
    ============================================================================= */
@@ -110,6 +195,7 @@ a:hover {
   gap: var(--space-6);
   max-width: 1100px;
   margin: 0 auto;
+  padding: var(--space-6);
 }
 
 /* Two equal columns on viewports >= 600px */
@@ -139,6 +225,7 @@ a:hover {
   padding: var(--space-6);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border);
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 /* =============================================================================
@@ -168,9 +255,10 @@ a:hover {
 .widget--greeting {
   text-align: center;
   padding: var(--space-10) var(--space-6);
-  background: linear-gradient(135deg, #4f6ef7 0%, #7c3aed 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-greeting-bg-start) 0%, var(--color-greeting-bg-end) 100%);
+  color: var(--color-greeting-text);
   border: none;
+  transition: background var(--transition-base);
 }
 
 #greeting-time {
@@ -179,19 +267,125 @@ a:hover {
   letter-spacing: -0.02em;
   line-height: 1;
   margin-bottom: var(--space-2);
-  color: #ffffff;
+  color: var(--color-greeting-text);
 }
 
 #greeting-date {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.80);
+  color: var(--color-greeting-date);
   margin-bottom: var(--space-3);
+}
+
+/* Row that holds the greeting message and the edit pencil button inline */
+.greeting-message-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 #greeting-message {
   font-size: 1.25rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--color-greeting-msg);
+}
+
+/* Small, unobtrusive pencil button sitting inline with the greeting */
+#greeting-edit-btn {
+  background: transparent;
+  border: none;
+  padding: var(--space-1);
+  font-size: 0.85rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.70);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+#greeting-edit-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+#greeting-edit-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.50);
+}
+
+/* Name-edit form — hidden by default, flex when visible */
+#greeting-name-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+#greeting-name-form[hidden] {
+  display: none;
+}
+
+#greeting-name-input {
+  width: auto;
+  min-width: 160px;
+  max-width: 240px;
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.9rem;
+  background-color: rgba(255, 255, 255, 0.20);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#greeting-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.60);
+}
+
+#greeting-name-input:focus {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+
+#greeting-name-save,
+#greeting-name-clear {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+#greeting-name-save {
+  background-color: rgba(255, 255, 255, 0.90);
+  color: var(--color-greeting-bg-start);
+  border: 1px solid transparent;
+}
+
+#greeting-name-save:hover {
+  background-color: #ffffff;
+}
+
+#greeting-name-clear {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.50);
+}
+
+#greeting-name-clear:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+#greeting-name-save:focus-visible,
+#greeting-name-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.50);
 }
 
 /* =============================================================================
@@ -256,7 +450,8 @@ button {
   cursor: pointer;
   transition: background-color var(--transition-fast),
               border-color var(--transition-fast),
-              box-shadow var(--transition-fast);
+              box-shadow var(--transition-fast),
+              color var(--transition-fast);
   white-space: nowrap;
 }
 
@@ -305,7 +500,7 @@ button[type="submit"]:hover,
 
 .todo-item__btn--delete:hover,
 .link-item__btn--delete:hover {
-  background-color: #fff5f5;
+  background-color: var(--color-danger-bg);
   border-color: var(--color-danger);
 }
 
@@ -336,7 +531,10 @@ input[type="url"] {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-base),
+              color var(--transition-base);
 }
 
 input[type="text"]:focus,
@@ -396,14 +594,14 @@ label {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background-color: var(--color-bg);
+  background-color: var(--color-todo-item-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast);
 }
 
 .todo-item:hover {
-  background-color: #eef1fe;
+  background-color: var(--color-todo-item-hover);
 }
 
 .todo-item__description {
@@ -420,6 +618,79 @@ label {
 
 #todo-form input[type="text"] {
   flex: 1;
+}
+
+/* =============================================================================
+   10b. Timer Duration Controls
+   Requirements: 13.6, 13.7, 13.8
+   ============================================================================= */
+
+/* Row containing the duration label, number input, and Set button */
+.timer-duration-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.timer-duration-row label {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Number input — consistent with other inputs but narrower */
+#timer-duration-input {
+  width: 5rem;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  transition: border-color var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-base),
+              color var(--transition-base);
+}
+
+#timer-duration-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Set button — secondary style matching Stop/Reset */
+#timer-duration-set {
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+#timer-duration-set:hover:not(:disabled) {
+  background-color: var(--color-bg);
+  border-color: var(--color-text-muted);
+}
+
+/* Disabled state — reduced opacity to signal controls are inactive */
+#timer-duration-input:disabled,
+#timer-duration-set:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Inline validation error message */
+#timer-duration-error {
+  font-size: 0.8rem;
+  color: var(--color-error);
+  min-height: 1.2em;
+  text-align: center;
 }
 
 /* =============================================================================
@@ -443,7 +714,7 @@ label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  background-color: var(--color-accent-light);
+  background-color: var(--color-link-item-bg);
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-pill);
   padding: var(--space-1) var(--space-3);
@@ -451,7 +722,7 @@ label {
 }
 
 .link-item:hover {
-  background-color: #dde4fd;
+  background-color: var(--color-link-item-hover);
 }
 
 .link-item__anchor {

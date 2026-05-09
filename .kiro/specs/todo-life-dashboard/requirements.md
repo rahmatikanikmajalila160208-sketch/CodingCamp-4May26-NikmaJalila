@@ -154,3 +154,52 @@ The Todo List Life Dashboard is a client-side web application that serves as a p
 2. WHEN the user interacts with any control (add, edit, delete, timer buttons, link buttons), THE Dashboard SHALL reflect the result of that interaction within 100 milliseconds.
 3. THE Dashboard SHALL apply a clear visual hierarchy that distinguishes each widget (Greeting_Widget, Focus_Timer, Todo_List, Quick_Links) from the others.
 4. THE Dashboard SHALL use typography with a minimum body font size of 14px to ensure readability.
+
+---
+
+### Requirement 11: Light / Dark Mode
+
+**User Story:** As a user, I want to toggle between a light and dark visual theme, so that I can use the Dashboard comfortably in different lighting conditions.
+
+#### Acceptance Criteria
+
+1. THE Dashboard SHALL provide a visible theme-toggle control that is accessible at all times on the Dashboard.
+2. WHEN the user activates the theme-toggle control while the light theme is active, THE Dashboard SHALL switch the entire page to the dark theme immediately.
+3. WHEN the user activates the theme-toggle control while the dark theme is active, THE Dashboard SHALL switch the entire page to the light theme immediately.
+4. WHEN the user activates the theme-toggle control, THE Dashboard SHALL write the selected theme value to Local_Storage.
+5. WHEN the Dashboard loads, THE Dashboard SHALL read the saved theme value from Local_Storage and apply it before rendering any widget content.
+6. IF no theme value exists in Local_Storage, THEN THE Dashboard SHALL apply the light theme as the default.
+7. THE Dashboard SHALL apply the active theme to all widgets simultaneously so that no widget retains the previous theme's styles.
+
+---
+
+### Requirement 12: Custom Name in Greeting
+
+**User Story:** As a user, I want to set a custom name that appears in the greeting message, so that the Dashboard feels personally addressed to me.
+
+#### Acceptance Criteria
+
+1. THE Greeting_Widget SHALL provide a control that allows the user to enter or update a custom display name.
+2. WHEN the user saves a non-empty name, THE Greeting_Widget SHALL display the greeting in the format "[Greeting], [Name]!" (e.g., "Good Morning, Alex!").
+3. WHEN the Dashboard loads and a non-empty name is saved in Local_Storage, THE Greeting_Widget SHALL display the personalised greeting format immediately.
+4. IF no name is saved in Local_Storage, THEN THE Greeting_Widget SHALL display the greeting without a name (e.g., "Good Morning!").
+5. WHEN the user saves a non-empty name, THE Greeting_Widget SHALL write the name to Local_Storage.
+6. WHEN the user clears the saved name, THE Greeting_Widget SHALL remove the name from Local_Storage and revert the greeting to the format without a name.
+7. IF the user attempts to save a whitespace-only string as a name, THEN THE Greeting_Widget SHALL treat it as an empty name and apply the no-name greeting format.
+
+---
+
+### Requirement 13: Custom Pomodoro Duration
+
+**User Story:** As a user, I want to change the Focus Timer duration from the default 25 minutes to a custom value, so that I can adapt the timer to my preferred work-session length.
+
+#### Acceptance Criteria
+
+1. THE Focus_Timer SHALL provide a control that allows the user to enter a custom duration in whole minutes.
+2. WHEN the user submits a valid custom duration, THE Focus_Timer SHALL reset the countdown to the new duration immediately and display the new value in MM:SS format.
+3. WHEN the user submits a valid custom duration, THE Focus_Timer SHALL write the new duration value to Local_Storage.
+4. WHEN the Dashboard loads, THE Focus_Timer SHALL read the saved duration value from Local_Storage and use it as the initial countdown value.
+5. IF no duration value exists in Local_Storage, THEN THE Focus_Timer SHALL use 25 minutes as the default duration.
+6. IF the user submits a duration outside the range of 1 to 60 minutes, THEN THE Focus_Timer SHALL not apply the change and SHALL display an inline validation message indicating the valid range.
+7. WHILE the Focus_Timer state is running or paused, THE Focus_Timer SHALL not allow the duration to be changed and SHALL disable or hide the duration-change control.
+8. WHEN the Focus_Timer state is idle or done, THE Focus_Timer SHALL enable the duration-change control so the user can set a new duration.
