@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo Life Dashboard</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <main class="dashboard-grid">
+
+      <!-- Greeting Widget -->
+      <section id="greeting" class="widget widget--greeting">
+        <p id="greeting-time"></p>
+        <p id="greeting-date"></p>
+        <p id="greeting-message"></p>
+      </section>
+
+      <!-- Focus Timer Widget -->
+      <section id="timer" class="widget widget--timer">
+        <div id="timer-display">25:00</div>
+        <div class="timer-controls">
+          <button id="timer-start" type="button">Start</button>
+          <button id="timer-stop" type="button">Stop</button>
+          <button id="timer-reset" type="button">Reset</button>
+        </div>
+      </section>
+
+      <!-- Quick Links Widget -->
+      <section id="links" class="widget widget--links">
+        <div id="links-panel"></div>
+        <form id="links-form" novalidate>
+          <label for="link-label">Label</label>
+          <input id="link-label" type="text" placeholder="e.g. GitHub" autocomplete="off" />
+          <label for="link-url">URL</label>
+          <input id="link-url" type="url" placeholder="https://example.com" autocomplete="off" />
+          <button type="submit">Add Link</button>
+          <p id="links-error" role="alert" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <!-- To-Do List Widget -->
+      <section id="todos" class="widget widget--todos">
+        <ul id="todo-list"></ul>
+        <form id="todo-form">
+          <input
+            id="todo-input"
+            type="text"
+            placeholder="Add a new task…"
+            autocomplete="off"
+            aria-label="New task description"
+          />
+          <button type="submit">Add Task</button>
+        </form>
+      </section>
+
+    </main>
+    <script src="js/app.js"></script>
+  </body>
+</html>
